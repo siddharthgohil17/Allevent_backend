@@ -18,23 +18,24 @@ return function (App $app) {
         // Get the "Origin" header from the request
         $origin = $request->getHeaderLine('Origin');
     
-        error_log("Request Origin: $origin");
+       error_log("Request Origin: $origin");
+       
     
         // Set CORS headers
         $response = $response
             ->withHeader('Access-Control-Allow-Origin', '*')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With')
-            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
     
         return $response;
     });
     
-
+    
     $app->get('/', function (Request $request, Response $response) {
         $response->getBody()->write('<h1> Hello date is ' . date('Y-m-d') . '</h1>');
         return $response;
     });
-    $app->get('/get_all_events', function (Request $request, Response $response, array $args) {
+    $app->get('/Allevents', function (Request $request, Response $response, array $args) {
         $queryParams = $request->getQueryParams();
         $event_name = isset($queryParams['event_name']) ? $queryParams['event_name'] : null;
         $time = isset($queryParams['time']) ? $queryParams['time'] : null;
@@ -395,7 +396,7 @@ return function (App $app) {
 
         $sql="SELECT category from events group by category";
 
-        try {
+         try {
             $db = new DB();
             $conn = $db->connect();
     
@@ -472,10 +473,8 @@ return function (App $app) {
         }
         
     });
+   
 
- 
-
- 
     
     
 

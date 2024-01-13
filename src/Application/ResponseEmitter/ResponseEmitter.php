@@ -16,6 +16,8 @@ class ResponseEmitter extends SlimResponseEmitter
     {
         // This variable should be set to the allowed host from which your API can be accessed with
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        error_log("Origin: $origin");
+        error_log(print_r($response->getHeaders(), true));
 
         $response = $response
             ->withHeader('Access-Control-Allow-Credentials', 'true')
