@@ -11,7 +11,7 @@ use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
 return function (App $app) {
-    
+
 
 
     $app->get('/', function (Request $request, Response $response) {
@@ -70,6 +70,7 @@ return function (App $app) {
         $offset = ($pageNo - 1) * $pageSize;
         $sql .= " LIMIT $pageSize OFFSET $offset";
     
+        
         try {
             $db = new DB();
             $conn = $db->connect();
