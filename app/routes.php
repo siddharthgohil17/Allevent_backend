@@ -12,13 +12,29 @@ use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
 return function (App $app) {
 
-
+    $app->options('/{routes:.*}', function (Request $request, Response $response) {
+        // CORS Pre-Flight OPTIONS Request Handler
+    
+        // Get the "Origin" header from the request
+        $origin = $request->getHeaderLine('Origin');
+    
+        error_log("Request Origin: $origin");
+    
+        // Set CORS headers
+        $response = $response
+            ->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    
+        return $response;
+    });
+    
 
     $app->get('/', function (Request $request, Response $response) {
         $response->getBody()->write('<h1> Hello date is ' . date('Y-m-d') . '</h1>');
         return $response;
     });
-    $app->get('/Allevents', function (Request $request, Response $response, array $args) {
+    $app->get('/get_all_events', function (Request $request, Response $response, array $args) {
         $queryParams = $request->getQueryParams();
         $event_name = isset($queryParams['event_name']) ? $queryParams['event_name'] : null;
         $time = isset($queryParams['time']) ? $queryParams['time'] : null;
@@ -70,7 +86,7 @@ return function (App $app) {
         $offset = ($pageNo - 1) * $pageSize;
         $sql .= " LIMIT $pageSize OFFSET $offset";
     
-        
+
         try {
             $db = new DB();
             $conn = $db->connect();
@@ -375,18 +391,91 @@ return function (App $app) {
         }
     });
     
+    $app->get("/collect_all_category", function (Request $request,Response $response){
+
+        $sql="SELECT category from events group by category";
+
+        try {
+            $db = new DB();
+            $conn = $db->connect();
+    
+            $stmt = $conn->query($sql);
+            $event = $stmt->fetchAll(PDO::FETCH_OBJ);
+            $db = null;
+    
+            if (empty($event)) {
+                $responseMessage = array(
+                    "message" => "No city found"
+                );
+                $response->getBody()->write(json_encode($responseMessage));
+                return $response
+                    ->withHeader("Content-Type", "application/json")
+                    ->withStatus(404);
+            }
+    
+            $response->getBody()->write(json_encode($event));
+    
+            return $response
+                ->withHeader("Content-Type", "application/json")
+                ->withStatus(200);
+        } catch (PDOException $e) {
+            $error = array(
+                "message" => "Internal Server error"
+            );
+    
+            $response->getBody()->write(json_encode($error));
+    
+            return $response
+                ->withHeader("Content-Type", "application/json")
+                ->withStatus(500);
+        }
+
+
+    });
+    $app->get("/collect_all_city", function (Request $request,Response $response){
+
+        $sql="SELECT city from events group by city";
+
+        try {
+            $db = new DB();
+            $conn = $db->connect();
+    
+            $stmt = $conn->query($sql);
+            $event = $stmt->fetchAll(PDO::FETCH_OBJ);
+            $db = null;
+    
+            if (empty($event)) {
+                $responseMessage = array(
+                    "message" => "No city found"
+                );
+                $response->getBody()->write(json_encode($responseMessage));
+                return $response
+                    ->withHeader("Content-Type", "application/json")
+                    ->withStatus(404);
+            }
+    
+            $response->getBody()->write(json_encode($event));
+    
+            return $response
+                ->withHeader("Content-Type", "application/json")
+                ->withStatus(200);
+        } catch (PDOException $e) {
+            $error = array(
+                "message" => "Internal Server error"
+            );
+    
+            $response->getBody()->write(json_encode($error));
+    
+            return $response
+                ->withHeader("Content-Type", "application/json")
+                ->withStatus(500);
+        }
+        
+    });
+
  
 
-    $app->options('/{routes:.*}', function (Request $request, Response $response) {
-        // CORS Pre-Flight OPTIONS Request Handler
-        $response = $response
-            ->withHeader('Access-Control-Allow-Origin', '*')
-            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
-
-        return $response;
-    });
-   
+ 
     
     
 
