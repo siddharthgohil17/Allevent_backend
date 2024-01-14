@@ -341,8 +341,9 @@ return function (App $app) {
         $city = $data['city'];
         $state = $data['state'];
         $country = $data['country'];
-        $start_time = DateTime::createFromFormat('d/m/Y', $data['start_time'])->format('Y-m-d');
-        $end_time = DateTime::createFromFormat('d/m/Y', $data['end_time'])->format('Y-m-d');        
+     $start_time = DateTime::createFromFormat('d/m/Y', $data['start_time'])->format('Y-m-d');
+$end_time = DateTime::createFromFormat('d/m/Y', $data['end_time'])->format('Y-m-d');
+
         $description = $data['description'];
         $organizer_id = $data['organizer_id'];
         $event_banner = $data['event_banner'];
@@ -368,8 +369,8 @@ return function (App $app) {
                 ->withHeader("Content-Type", "application/json")
                 ->withStatus(201); // 201 Created
         } catch (PDOException $e) {
-            // error_log('Error in /createEvent: ' . $e->getMessage());
-            // error_log('SQL Query: ' . $sql);
+            error_log('Error in /createEvent: ' . $e->getMessage());
+            error_log('SQL Query: ' . $sql);
             $error = array(
                 "message" => "Internal Server error"
             );
