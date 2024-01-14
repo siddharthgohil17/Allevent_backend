@@ -9,22 +9,19 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
-use App\Application\Middleware\CorsMiddleware; // Import the CorsMiddleware
+use App\Application\Middleware\CorsMiddleware; 
 
 return function (App $app) {
 
-
     $app->add(new CorsMiddleware());
+
+    //preflight cors request
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
-        // CORS Pre-Flight OPTIONS Request Handler
-    
-        // Get the "Origin" header from the request
-        $origin = $request->getHeaderLine('Origin');
-    
-       error_log("Request Origin: $origin");
        
-    
-        // Set CORS headers
+        // $origin = $request->getHeaderLine('Origin');
+        // error_log("Request Origin: $origin");
+       
+
         $response = $response
             ->withHeader('Access-Control-Allow-Origin', '*')
             ->withHeader('Access-Control-Allow-Methods', 'POST, PUT, DELETE, OPTIONS')
@@ -33,11 +30,12 @@ return function (App $app) {
         return $response;
     });
     
-    
+    //this api for checking purpose
     $app->get('/', function (Request $request, Response $response) {
         $response->getBody()->write('<h1> Hello date is ' . date('Y-m-d') . '</h1>');
         return $response;
     });
+     
     $app->get('/get_all_events', function (Request $request, Response $response, array $args) {
         $queryParams = $request->getQueryParams();
         $event_name = isset($queryParams['event_name']) ? $queryParams['event_name'] : null;
@@ -47,7 +45,7 @@ return function (App $app) {
         $city = isset($queryParams['city']) ? $queryParams['city'] : null;
         $category = isset($queryParams['category']) ? $queryParams['category'] : null;
         $pageNo = isset($queryParams['pageNo']) ? (int) $queryParams['pageNo'] : 1;
-        $pageSize = 10; 
+        $pageSize = 12; 
     
       
         $x = null;
@@ -127,6 +125,7 @@ return function (App $app) {
         }
     });
     
+    //this api for filter event according user preference
     $app->get('/location', function (Request $request, Response $response , array $args) {
         $queryParams = $request->getQueryParams(); 
         $country = isset($queryParams['country']) ? $queryParams['country'] : null;
@@ -315,6 +314,7 @@ return function (App $app) {
     
     });
 
+    //this api for add new event
     $app->post('/createEvent', function (Request $request, Response $response) {
         $data = $request->getParsedBody();
 
@@ -341,19 +341,19 @@ return function (App $app) {
         $city = $data['city'];
         $state = $data['state'];
         $country = $data['country'];
-     $start_time = DateTime::createFromFormat('d/m/Y', $data['start_time'])->format('Y-m-d');
-$end_time = DateTime::createFromFormat('d/m/Y', $data['end_time'])->format('Y-m-d');
+        $start_time = DateTime::createFromFormat('d/m/Y', $data['start_time'])->format('Y-m-d');
+        $end_time = DateTime::createFromFormat('d/m/Y', $data['end_time'])->format('Y-m-d');
 
         $description = $data['description'];
         $organizer_id = $data['organizer_id'];
         $event_banner = $data['event_banner'];
         $thumb_picture = $data['thumb_picture'];
     
-        // Insert into database
-        $sql = "INSERT INTO events (event_name, category, city, state, country, start_time, end_time, description, organizer_id, event_banner, thumb_picture) 
+       
+         $sql = "INSERT INTO events (event_name, category, city, state, country, start_time, end_time, description, organizer_id, event_banner, thumb_picture) 
                 VALUES ('$event_name', '$category', '$city', '$state', '$country', '$start_time', '$end_time', '$description', '$organizer_id', '$event_banner', '$thumb_picture')";
     
-        try {
+         try {
             $db = new DB();
             $conn = $db->connect();
     
@@ -382,8 +382,8 @@ $end_time = DateTime::createFromFormat('d/m/Y', $data['end_time'])->format('Y-m-
                 ->withStatus(500);
         }
     });
-    
-    
+     
+    //helping api
     $app->get("/collect_all_category", function (Request $request,Response $response){
 
         $sql="SELECT category from events group by category";

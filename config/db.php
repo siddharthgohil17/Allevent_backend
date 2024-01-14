@@ -6,7 +6,8 @@
     private $pass = "AVNS_Btp7vSyDm7lE2Vwnh-0";
     private $database = "Events";
     private $port = "27353";
-
+ 
+    //connect with  database
     public function connect() {
         try {
             $conn_str = "mysql:host=$this->host;port=$this->port;dbname=$this->database";
