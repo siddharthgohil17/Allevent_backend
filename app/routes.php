@@ -317,7 +317,7 @@ return function (App $app) {
     //this api for add new event
     $app->post('/createEvent', function (Request $request, Response $response) {
         $data = $request->getParsedBody();
-
+    
         // Validate required parameters
         $requiredFields = ['event_name', 'category', 'city', 'state', 'country', 'start_time', 'end_time', 'description', 'organizer_id', 'event_banner', 'thumb_picture'];
     
@@ -343,21 +343,35 @@ return function (App $app) {
         $country = $data['country'];
         $start_time = DateTime::createFromFormat('d/m/Y', $data['start_time'])->format('Y-m-d');
         $end_time = DateTime::createFromFormat('d/m/Y', $data['end_time'])->format('Y-m-d');
-
         $description = $data['description'];
         $organizer_id = $data['organizer_id'];
         $event_banner = $data['event_banner'];
         $thumb_picture = $data['thumb_picture'];
     
-       
-         $sql = "INSERT INTO events (event_name, category, city, state, country, start_time, end_time, description, organizer_id, event_banner, thumb_picture) 
-                VALUES ('$event_name', '$category', '$city', '$state', '$country', '$start_time', '$end_time', '$description', '$organizer_id', '$event_banner', '$thumb_picture')";
+        // Use prepared statement and parameterized query to prevent SQL injection
+        $sql = "INSERT INTO events (event_name, category, city, state, country, start_time, end_time, description, organizer_id, event_banner, thumb_picture) 
+                VALUES (:event_name, :category, :city, :state, :country, :start_time, :end_time, :description, :organizer_id, :event_banner, :thumb_picture)";
     
-         try {
+        try {
             $db = new DB();
             $conn = $db->connect();
     
-            $conn->exec($sql); 
+            $stmt = $conn->prepare($sql);
+    
+            // Bind parameters
+            $stmt->bindParam(':event_name', $event_name);
+            $stmt->bindParam(':category', $category);
+            $stmt->bindParam(':city', $city);
+            $stmt->bindParam(':state', $state);
+            $stmt->bindParam(':country', $country);
+            $stmt->bindParam(':start_time', $start_time);
+            $stmt->bindParam(':end_time', $end_time);
+            $stmt->bindParam(':description', $description);
+            $stmt->bindParam(':organizer_id', $organizer_id);
+            $stmt->bindParam(':event_banner', $event_banner);
+            $stmt->bindParam(':thumb_picture', $thumb_picture);
+    
+            $stmt->execute();
     
             $responseMessage = array(
                 "message" => "Event created successfully."
@@ -382,6 +396,7 @@ return function (App $app) {
                 ->withStatus(500);
         }
     });
+    
      
     //helping api
     $app->get("/collect_all_category", function (Request $request,Response $response){
