@@ -9,9 +9,12 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
+use App\Application\Middleware\CorsMiddleware; // Import the CorsMiddleware
 
 return function (App $app) {
 
+
+    $app->add(new CorsMiddleware());
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
         // CORS Pre-Flight OPTIONS Request Handler
     
@@ -24,7 +27,7 @@ return function (App $app) {
         // Set CORS headers
         $response = $response
             ->withHeader('Access-Control-Allow-Origin', '*')
-            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->withHeader('Access-Control-Allow-Methods', 'POST, PUT, DELETE, OPTIONS')
             ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
     
         return $response;
@@ -35,7 +38,7 @@ return function (App $app) {
         $response->getBody()->write('<h1> Hello date is ' . date('Y-m-d') . '</h1>');
         return $response;
     });
-    $app->get('/Allevents', function (Request $request, Response $response, array $args) {
+    $app->get('/get_all_events', function (Request $request, Response $response, array $args) {
         $queryParams = $request->getQueryParams();
         $event_name = isset($queryParams['event_name']) ? $queryParams['event_name'] : null;
         $time = isset($queryParams['time']) ? $queryParams['time'] : null;
@@ -314,9 +317,9 @@ return function (App $app) {
 
     $app->post('/createEvent', function (Request $request, Response $response) {
         $data = $request->getParsedBody();
-    
+
         // Validate required parameters
-        $requiredFields = ['event_name', 'category', 'city', 'state', 'country', 'start_time', 'end_time', 'description', 'organizer_id', 'event_banner', 'thumb_picture', 'weight'];
+        $requiredFields = ['event_name', 'category', 'city', 'state', 'country', 'start_time', 'end_time', 'description', 'organizer_id', 'event_banner', 'thumb_picture'];
     
         foreach ($requiredFields as $field) {
             if (!isset($data[$field]) || empty($data[$field])) {
@@ -338,37 +341,22 @@ return function (App $app) {
         $city = $data['city'];
         $state = $data['state'];
         $country = $data['country'];
-        $start_time = $data['start_time'];
-        $end_time = $data['end_time'];
+        $start_time = DateTime::createFromFormat('d/m/Y', $data['start_time'])->format('Y-m-d');
+        $end_time = DateTime::createFromFormat('d/m/Y', $data['end_time'])->format('Y-m-d');        
         $description = $data['description'];
         $organizer_id = $data['organizer_id'];
         $event_banner = $data['event_banner'];
         $thumb_picture = $data['thumb_picture'];
-        $weight = $data['weight'];
     
         // Insert into database
-        $sql = "INSERT INTO events (event_name, category, city, state, country, start_time, end_time, description, organizer_id, event_banner, thumb_picture, weight) 
-                VALUES (:event_name, :category, :city, :state, :country, :start_time, :end_time, :description, :organizer_id, :event_banner, :thumb_picture, :weight)";
+        $sql = "INSERT INTO events (event_name, category, city, state, country, start_time, end_time, description, organizer_id, event_banner, thumb_picture) 
+                VALUES ('$event_name', '$category', '$city', '$state', '$country', '$start_time', '$end_time', '$description', '$organizer_id', '$event_banner', '$thumb_picture')";
     
         try {
             $db = new DB();
             $conn = $db->connect();
     
-            $stmt = $conn->prepare($sql);
-            $stmt->bindParam(':event_name', $event_name, PDO::PARAM_STR);
-            $stmt->bindParam(':category', $category, PDO::PARAM_STR);
-            $stmt->bindParam(':city', $city, PDO::PARAM_STR);
-            $stmt->bindParam(':state', $state, PDO::PARAM_STR);
-            $stmt->bindParam(':country', $country, PDO::PARAM_STR);
-            $stmt->bindParam(':start_time', $start_time, PDO::PARAM_STR);
-            $stmt->bindParam(':end_time', $end_time, PDO::PARAM_STR);
-            $stmt->bindParam(':description', $description, PDO::PARAM_STR);
-            $stmt->bindParam(':organizer_id', $organizer_id, PDO::PARAM_STR);
-            $stmt->bindParam(':event_banner', $event_banner, PDO::PARAM_STR);
-            $stmt->bindParam(':thumb_picture', $thumb_picture, PDO::PARAM_STR);
-            $stmt->bindParam(':weight', $weight, PDO::PARAM_INT);
-    
-            $stmt->execute();
+            $conn->exec($sql); 
     
             $responseMessage = array(
                 "message" => "Event created successfully."
@@ -380,6 +368,8 @@ return function (App $app) {
                 ->withHeader("Content-Type", "application/json")
                 ->withStatus(201); // 201 Created
         } catch (PDOException $e) {
+            // error_log('Error in /createEvent: ' . $e->getMessage());
+            // error_log('SQL Query: ' . $sql);
             $error = array(
                 "message" => "Internal Server error"
             );
@@ -391,6 +381,7 @@ return function (App $app) {
                 ->withStatus(500);
         }
     });
+    
     
     $app->get("/collect_all_category", function (Request $request,Response $response){
 
