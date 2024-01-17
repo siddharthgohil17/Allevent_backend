@@ -82,9 +82,7 @@ return function (App $app) {
     
         if ($event_name !== null) {
             $sql .= " AND event_name = '$event_name'";
-        }
-    
-        // Calculate OFFSET based on page number and page size
+        }   
         $offset = ($pageNo - 1) * $pageSize;
         $sql .= " LIMIT $pageSize OFFSET $offset";
     
@@ -318,8 +316,7 @@ return function (App $app) {
     $app->post('/createEvent', function (Request $request, Response $response) {
         $data = $request->getParsedBody();
     
-        // Validate required parameters
-        $requiredFields = ['event_name', 'category', 'city', 'state', 'country', 'start_time', 'end_time', 'description', 'organizer_id', 'event_banner', 'thumb_picture'];
+        $requiredFields = ['event_name', 'category', 'city', 'state', 'country', 'start_time', 'end_time', 'description', 'organizer_id', 'thumb_picture'];
     
         foreach ($requiredFields as $field) {
             if (!isset($data[$field]) || empty($data[$field])) {
@@ -345,12 +342,11 @@ return function (App $app) {
         $end_time = DateTime::createFromFormat('d/m/Y', $data['end_time'])->format('Y-m-d');
         $description = $data['description'];
         $organizer_id = $data['organizer_id'];
-        $event_banner = $data['event_banner'];
         $thumb_picture = $data['thumb_picture'];
     
         // Use prepared statement and parameterized query to prevent SQL injection
-        $sql = "INSERT INTO events (event_name, category, city, state, country, start_time, end_time, description, organizer_id, event_banner, thumb_picture) 
-                VALUES (:event_name, :category, :city, :state, :country, :start_time, :end_time, :description, :organizer_id, :event_banner, :thumb_picture)";
+        $sql = "INSERT INTO events (event_name, category, city, state, country, start_time, end_time, description, organizer_id, thumb_picture) 
+                VALUES (:event_name, :category, :city, :state, :country, :start_time, :end_time, :description, :organizer_id, :thumb_picture)";
     
         try {
             $db = new DB();
@@ -368,7 +364,6 @@ return function (App $app) {
             $stmt->bindParam(':end_time', $end_time);
             $stmt->bindParam(':description', $description);
             $stmt->bindParam(':organizer_id', $organizer_id);
-            $stmt->bindParam(':event_banner', $event_banner);
             $stmt->bindParam(':thumb_picture', $thumb_picture);
     
             $stmt->execute();
