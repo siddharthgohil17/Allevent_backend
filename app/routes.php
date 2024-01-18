@@ -141,10 +141,10 @@ return function (App $app) {
         
             return $response
                 ->withHeader("Content-Type", "application/json")
-                ->withStatus(400);  // You can choose an appropriate HTTP status code
+                ->withStatus(400);  
         }
          
-        // You may want to add additional validation for the parameters if needed.
+
         $sql = "SELECT * FROM events WHERE 1";
         if ($country !== null) {
             $sql .= " AND country = '$country'";
@@ -344,7 +344,7 @@ return function (App $app) {
         $organizer_id = $data['organizer_id'];
         $thumb_picture = $data['thumb_picture'];
     
-        // Use prepared statement and parameterized query to prevent SQL injection
+      
         $sql = "INSERT INTO events (event_name, category, city, state, country, start_time, end_time, description, organizer_id, thumb_picture) 
                 VALUES (:event_name, :category, :city, :state, :country, :start_time, :end_time, :description, :organizer_id, :thumb_picture)";
     
@@ -354,7 +354,6 @@ return function (App $app) {
     
             $stmt = $conn->prepare($sql);
     
-            // Bind parameters
             $stmt->bindParam(':event_name', $event_name);
             $stmt->bindParam(':category', $category);
             $stmt->bindParam(':city', $city);
